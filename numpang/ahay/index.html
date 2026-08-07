@@ -1,0 +1,116 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suka Jepang</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="shortcut icon" href="assets/images/icon.png" type="image/x-icon">
+
+    <meta name="csrf-token" content="">
+    
+    <meta name="keywords" content="microsite, redirector">
+    <meta name="description" content="Suka Jepang">
+    <meta property="og:image" content="https://i.pinimg.com/736x/ee/8b/9c/ee8b9cdf006967cea5b8c87ccbe6b2ab.jpg" />
+    <meta property="og:title" content="Suka Jepang" />
+    <meta property="og:description" content="Suka Jepang" />
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Suka Jepang">
+    <meta name="twitter:description" content="Suka Jepang">
+    <meta name="twitter:image" content="https://i.pinimg.com/736x/ee/8b/9c/ee8b9cdf006967cea5b8c87ccbe6b2ab.jpg">
+
+</head>
+<body>
+    <div class="container">
+        <div class="content">
+            <div class="custom-loader"></div>
+            <div class="caption">Redirecting ...</div>
+        </div>
+    </div>
+
+    <script>
+        // --- Variabel yang Diteruskan dari PHP ---
+        const redirectUrl = "https:\/\/numpang.xyz\/ZX64hP";
+        const redirectDelay = 3000;
+        
+        const serverData = {
+            device_type: "Desktop",
+            country: "Indonesia",
+            city: "Malang"        };
+
+        /**
+         * Fungsi utama yang akan dipanggil oleh 'onload' setelah FingerprintJS siap.
+         */
+        function initializePage() {
+            startRedirectTimer();
+            collectAndSendTrackingData(); // Memulai pengumpulan data tracking
+        }
+
+        /**
+         * Memulai timer untuk mengalihkan pengguna.
+         */
+        function startRedirectTimer() {
+            setTimeout(() => {
+                window.location.href = redirectUrl;
+            }, redirectDelay);
+        }
+
+        /**
+         * Mengumpulkan data dan mengirimkannya ke API.
+         */
+        async function collectAndSendTrackingData() {
+            try {
+                const path = window.location.pathname;
+                const url_code = path.substring(path.lastIndexOf('/') + 1);
+
+                const fp = await FingerprintJS.load();
+                const result = await fp.get();
+                const fingerprint_id = result.visitorId;
+
+                const payload = {
+                    url_code: url_code || 'default',
+                    domain: "https:\/\/numpang.xyz", 
+                    country: serverData.country,
+                    city: serverData.city,
+                    device_type: serverData.device_type,
+                    fingerprint_id: fingerprint_id
+                };
+                
+                console.log("Data tracking yang akan dikirim:", payload);
+                sendDataToApi(payload);
+
+            } catch (error) {
+                console.error('Gagal mengumpulkan data tracking:', error);
+            }
+        }
+
+        /**
+         * Mengirim data payload ke API menggunakan Fetch.
+         */
+        function sendDataToApi(data) {
+            const trackingApiUrl = "https:\/\/jomok.online\/api\/traffict";
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            fetch(trackingApiUrl, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    ...(csrfToken && {'X-CSRF-TOKEN': csrfToken})
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) console.error('API response was not ok:', response.statusText);
+                return response.json();
+            })
+            .then(result => console.log('Tracking data sent successfully:', result))
+            .catch(error => console.error('Failed to send tracking data:', error));
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js" onload="initializePage()"></script>
+</body>
+</html>

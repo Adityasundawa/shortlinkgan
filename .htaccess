@@ -1,0 +1,17 @@
+<IfModule mod_rewrite.c>
+ RewriteEngine on
+
+    # START: ATURAN PENGECUALIAN UNTUK TWITTER BOT & CRAWLER LAIN
+    # Baris ini memastikan bahwa permintaan dari bot media sosial (seperti Twitterbot)
+    # tidak dialihkan (mereka bisa langsung mengakses file gambar statis).
+    RewriteCond %{HTTP_USER_AGENT} (Twitterbot|facebookexternalhit|LinkedInBot) [NC]
+    RewriteRule ^ - [L]
+    # END: ATURAN PENGECUALIAN
+
+# ATURAN ROUTING UTAMA ANDA
+    # Mencegah pengalihan jika URL sudah /storage atau /public
+ RewriteCond %{REQUEST_URI} !^storage
+ RewriteCond %{REQUEST_URI} !^public
+    # Mengalihkan semua permintaan yang tersisa ke direktori public/
+ RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

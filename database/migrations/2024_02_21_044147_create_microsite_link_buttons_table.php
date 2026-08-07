@@ -1,0 +1,31 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('microsite_link_buttons', function (Blueprint $table) {
+            $table->id();
+            $table->string('title');
+            $table->string('url');
+            $table->unsignedBigInteger('microsite_links_id');
+            $table->timestamps();
+            $table->foreign('microsite_links_id')->references('id')->on('microsite_links')->onDelete('cascade');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('microsite_link_buttons');
+    }
+};

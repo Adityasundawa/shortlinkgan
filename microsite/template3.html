@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+  margin: 0;
+  padding: 0;
+}
+
+
+:root {
+  --white: #E0E1E9;
+  --black: #373F51;
+  --yellow: #F7F052;
+  --blue: #008DD5;
+  --red: #F56476;
+}
+
+body {
+  /*
+  You can insert a background image.
+  Keep a background color! */
+
+  /*
+  background-image: url("");
+  background-position: top left;
+  background-size: cover;
+  */
+
+  background: var(--black);
+  display: flex;
+  justify-content: center;
+
+  font-family: 'Helvetica', 'Arial', 'sans-serif' ;
+  font-size: 20px;
+  font-weight: 200;
+  color: var(--black);
+}
+
+#linktree {
+  background: white;
+  border-radius: 50px 50px 50px 50px;
+  max-width: 500px;
+  padding: 3em;
+  margin: 20px 0px 20px 0px;
+  text-align: center;
+}
+
+.profile-picture {
+  padding: 2em 1em 1em 1em;
+  margin: 0;
+}
+
+.profile-picture img {
+  overflow: hidden;
+  background: var(--black);
+  border-radius: 100%;
+  height: 200px;
+  width: 200px;
+}
+
+.profile {
+  padding: 0.5em 2em 2em 2em;
+  line-height: 1.3em;
+  font-size: 1.3em;
+}
+
+.links {
+}
+
+.links .button {
+  display: block;
+  background: var(--black);
+  border: 2px solid var(--black);
+  color: white;
+
+  font-weight: 400;
+  font-size: 1.1em;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+
+  margin: 20px 0px 0px 0px;
+  border-radius: 50px;
+  padding: 15px 0px 15px 0px;
+  width: 100%;
+}
+
+.links .button:hover {
+  border: 2px solid var(--black);
+  background:none;
+  color: var(--black);
+  text-decoration: none;
+  transition: 0.3s ease-in-out;
+}
+
+.socials {
+    padding: 1.5em 2em 1em 2em;
+}
+
+.socials a {
+  color: var(--black);
+  transition: 0.3s ease-in-out;
+}
+
+.socials a:hover {
+  color: var(--red);
+  text-decoration: none;
+}
+
+ /* Mobile */
+
+@media only screen and (max-width: 450px) {
+  body {
+  #linktree {
+  margin-top: 0px;
+  border-radius: 0px;
+}
+  }
+}
+    </style>
+</head>
+<body>
+    <div id="linktree">
+
+      <div class="profile-picture">
+
+       <!--- Profile image --->
+        <img src="https://heiannemarit.no/codepen/portfolio_fill_B.png">
+      </div>
+
+      <!--- Profile --->
+      <div class="profile">
+        Hi! My name is AnneM
+        <br/>and this is my LinkTree.
+      </div>
+
+       <!--- Links: No buttons since a tag around buttons is not good 💅 --->
+      <div class="links">
+        <a class="button" href="#">PORTFOLIO</a>
+        <a class="button" href="#">SKETCHBLOG</a>
+       </div>
+
+       <!--- Socials --->
+      <div class="socials">
+        <a href="" target="_new">Instagram</a> +
+        <a href="" target="_new">Twitter</a>
+      </div>
+
+    </div>
+    <body>
+</html>

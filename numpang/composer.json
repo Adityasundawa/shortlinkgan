@@ -1,0 +1,12 @@
+{
+    "name": "programmer/microsite_domain_redirect",
+    "description": "Mircosite url redirect",
+    "autoload": {
+        "psr-4": {
+            "Programmer\\MicrositeDomainRedirect\\": "src/"
+        }
+    },
+    "require": {
+        "vlucas/phpdotenv": "^5.6"
+    }
+}
