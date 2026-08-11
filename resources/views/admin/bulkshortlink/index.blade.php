@@ -1078,7 +1078,7 @@
 
                     // **PERBAIKAN LOAD ORIGINAL URL:** Setel nilai URL dan simpan ke data-attribute
                     // Menggunakan variabel $originalUrlInput (jQuery object)
-                    $originalUrlInput.val(originalUrlValue).data('originalValue', originalUrlValue);
+                    $originalUrlInput.val(originalUrlValue).attr('data-original-value', originalUrlValue);
 
 
                     // Panggil toggle untuk menampilkan/menyembunyikan section dan mengatur required

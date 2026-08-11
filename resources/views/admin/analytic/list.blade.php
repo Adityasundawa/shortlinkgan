@@ -1047,7 +1047,7 @@
                 .prop('disabled', false)
                 .prop('required', true)
                 .val('')
-                .data('originalValue', '');
+                .attr('data-original-value', '');
             $('#editSetMultiRedirect').prop('checked', false);
             $('#edit-multi-redirect-section').hide();
             $('#editSetUTM').prop('checked', false);
@@ -1099,7 +1099,7 @@
 
                     // **PERBAIKAN LOAD ORIGINAL URL:** Setel nilai URL dan simpan ke data-attribute
                     // Menggunakan variabel $originalUrlInput (jQuery object)
-                    $originalUrlInput.val(originalUrlValue).data('originalValue', originalUrlValue);
+                    $originalUrlInput.val(originalUrlValue).attr('data-original-value', originalUrlValue);
 
 
                     // Panggil toggle untuk menampilkan/menyembunyikan section dan mengatur required
