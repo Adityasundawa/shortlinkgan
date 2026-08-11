@@ -347,35 +347,39 @@ class CampaignController extends Controller
                     return $query
                         ->whereNotNull("short_link_trafficts.$parameter")
                         ->where("short_link_trafficts.$parameter", '!=', '')
-                        ->selectRaw("'{$parameter}' as parameter")
                         ->select("short_link_trafficts.$parameter as value")
                         ->selectRaw('SUM(short_link_trafficts.visitor_day) as page_views')
                         ->selectRaw($qualifiedVisitorAggregate.' as visitors')
                         ->groupBy("short_link_trafficts.$parameter")
                         ->orderByDesc('visitors')
-                        ->get();
+                        ->get()
+                        ->map(fn ($item) => [
+                            'parameter' => $parameter,
+                            'value' => $item->value,
+                            'page_views' => (int) $item->page_views,
+                            'visitors' => (int) $item->visitors,
+                        ]);
                 }
 
                 return $query
                     ->join('short_links', 'short_link_trafficts.short_links_id', '=', 'short_links.id')
                     ->whereNotNull("short_links.$parameter")
                     ->where("short_links.$parameter", '!=', '')
-                    ->selectRaw("'{$parameter}' as parameter")
                     ->select("short_links.$parameter as value")
                     ->selectRaw('SUM(short_link_trafficts.visitor_day) as page_views')
                     ->selectRaw($qualifiedVisitorAggregate.' as visitors')
                     ->groupBy("short_links.$parameter")
                     ->orderByDesc('visitors')
-                    ->get();
+                    ->get()
+                    ->map(fn ($item) => [
+                        'parameter' => $parameter,
+                        'value' => $item->value,
+                        'page_views' => (int) $item->page_views,
+                        'visitors' => (int) $item->visitors,
+                    ]);
             })
             ->sortByDesc('visitors')
-            ->values()
-            ->map(fn ($item) => [
-                'parameter' => $item->parameter,
-                'value' => $item->value,
-                'page_views' => (int) $item->page_views,
-                'visitors' => (int) $item->visitors,
-            ]);
+            ->values();
 
         // 3. --- RETURN FINAL ---
         return [

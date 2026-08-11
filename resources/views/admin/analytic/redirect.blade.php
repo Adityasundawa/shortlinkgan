@@ -318,9 +318,10 @@
                 utmTableBody.append('<tr><td colspan="4" class="text-center">Belum ada traffic dengan UTM untuk short link ini.</td></tr>');
             } else {
                 data.utmPerformance.forEach(item => {
+                    const parameter = item.parameter || 'utm';
                     utmTableBody.append(`
                         <tr>
-                            <td><span class="badge bg-primary">${item.parameter}</span></td>
+                            <td><span class="badge bg-primary">${parameter}</span></td>
                             <td>${item.value}</td>
                             <td>${item.visitors}</td>
                             <td>${item.page_views}</td>

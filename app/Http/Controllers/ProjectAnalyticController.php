@@ -363,22 +363,21 @@ class ProjectAnalyticController extends Controller
                     return (clone $baseQuery)
                         ->whereNotNull($parameter)
                         ->where($parameter, '!=', '')
-                        ->selectRaw("'{$parameter}' as parameter")
                         ->select("$parameter as value")
                         ->selectRaw('SUM(visitor_day) as page_views')
                         ->selectRaw($visitorAggregate.' as visitors')
                         ->groupBy($parameter)
                         ->orderByDesc('visitors')
-                        ->get();
+                        ->get()
+                        ->map(fn ($item) => [
+                            'parameter' => $parameter,
+                            'value' => $item->value,
+                            'page_views' => (int) $item->page_views,
+                            'visitors' => (int) $item->visitors,
+                        ]);
                 })
                 ->sortByDesc('visitors')
                 ->values()
-                ->map(fn ($item) => [
-                    'parameter' => $item->parameter,
-                    'value' => $item->value,
-                    'page_views' => (int) $item->page_views,
-                    'visitors' => (int) $item->visitors,
-                ])
             : collect([
                 'utm_campaign' => $shortLink->utm_campaign,
                 'utm_source' => $shortLink->utm_source,
