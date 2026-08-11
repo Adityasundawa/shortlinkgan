@@ -6,6 +6,39 @@
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
 {{-- Asumsikan Anda menggunakan style dari Blade sebelumnya --}}
+<style>
+    .utm-group-row td {
+        background: var(--bs-tertiary-bg);
+        color: var(--bs-secondary-color);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+
+    .utm-value-cell {
+        max-width: 360px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .utm-bar-track {
+        width: 100%;
+        min-width: 160px;
+        height: 6px;
+        overflow: hidden;
+        background: var(--bs-border-color-translucent);
+        border-radius: 999px;
+    }
+
+    .utm-bar-fill {
+        height: 100%;
+        min-width: 4px;
+        background: #2f80ed;
+        border-radius: inherit;
+    }
+</style>
 @endsection
 
 @section('main-content')
@@ -143,10 +176,10 @@
                                             <table class="table table-hover mb-0" id="utm-performance-table">
                                                 <thead>
                                                     <tr>
-                                                        <th>Parameter</th>
                                                         <th>Value</th>
-                                                        <th>Visitors</th>
-                                                        <th>Page Views</th>
+                                                        <th class="text-end">Visitors</th>
+                                                        <th class="text-end">Page Views</th>
+                                                        <th style="width: 32%"></th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -247,6 +280,52 @@
         deviceChart.render();
     }
 
+    function escapeHtml(value) {
+        return $('<div>').text(value ?? '').html();
+    }
+
+    function formatNumber(value) {
+        return Number(value || 0).toLocaleString('en-US');
+    }
+
+    function renderUtmPerformance(rows, emptyMessage) {
+        const utmTableBody = $('#utm-performance-table tbody');
+        utmTableBody.empty();
+
+        if (!rows || rows.length === 0) {
+            utmTableBody.append(`<tr><td colspan="4" class="text-center">${emptyMessage}</td></tr>`);
+            return;
+        }
+
+        const groups = rows.reduce((carry, item) => {
+            const parameter = item.parameter || 'utm';
+            carry[parameter] = carry[parameter] || [];
+            carry[parameter].push(item);
+            return carry;
+        }, {});
+
+        Object.keys(groups).forEach(parameter => {
+            const items = groups[parameter];
+            const maxPageViews = Math.max(...items.map(item => Number(item.page_views || 0)), 1);
+
+            utmTableBody.append(`<tr class="utm-group-row"><td colspan="4">${escapeHtml(parameter.replace('utm_', 'UTM '))}</td></tr>`);
+
+            items.forEach(item => {
+                const pageViews = Number(item.page_views || 0);
+                const percentage = Math.max((pageViews / maxPageViews) * 100, pageViews > 0 ? 3 : 0);
+
+                utmTableBody.append(`
+                    <tr>
+                        <td class="utm-value-cell" title="${escapeHtml(item.value || '-')}"><strong>${escapeHtml(item.value || '-')}</strong></td>
+                        <td class="text-end">${formatNumber(item.visitors)}</td>
+                        <td class="text-end">${formatNumber(pageViews)}</td>
+                        <td><div class="utm-bar-track"><div class="utm-bar-fill" style="width: ${percentage}%"></div></div></td>
+                    </tr>
+                `);
+            });
+        });
+    }
+
     // Fungsi untuk mengambil dan memperbarui data
     function fetchAndUpdateData() {
         const dateRange = $('#dateRangePicker').data('daterangepicker');
@@ -310,25 +389,7 @@
                 });
             }
 
-            // --- 5. Update UTM Performance Table ---
-            const utmTableBody = $('#utm-performance-table tbody');
-            utmTableBody.empty();
-
-            if(!data.utmPerformance || data.utmPerformance.length === 0) {
-                utmTableBody.append('<tr><td colspan="4" class="text-center">Belum ada traffic dengan UTM untuk short link ini.</td></tr>');
-            } else {
-                data.utmPerformance.forEach(item => {
-                    const parameter = item.parameter || 'utm';
-                    utmTableBody.append(`
-                        <tr>
-                            <td><span class="badge bg-primary">${parameter}</span></td>
-                            <td>${item.value}</td>
-                            <td>${item.visitors}</td>
-                            <td>${item.page_views}</td>
-                        </tr>
-                    `);
-                });
-            }
+            renderUtmPerformance(data.utmPerformance, 'Belum ada traffic dengan UTM untuk short link ini.');
 
             notyf.success('Data analitik berhasil diperbarui!');
         })
