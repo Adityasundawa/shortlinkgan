@@ -38,6 +38,16 @@
         background: #2f80ed;
         border-radius: inherit;
     }
+
+    .utm-tabs .nav-link {
+        color: var(--bs-body-color);
+        font-weight: 600;
+    }
+
+    .utm-tabs .nav-link.active {
+        color: #2f80ed;
+        border-bottom-color: #2f80ed;
+    }
 </style>
 @endsection
 
@@ -188,6 +198,21 @@
                                         <h5 class="mb-0">Performa UTM</h5>
                                     </div>
                                     <div class="card-body">
+                                        <ul class="nav nav-tabs utm-tabs mb-3" id="utm-tabs" role="tablist">
+                                            <li class="nav-item" role="presentation"><button class="nav-link active" type="button" data-utm-param="utm_campaign">Campaign <span class="badge bg-light text-dark ms-1" data-utm-count="utm_campaign">0</span></button></li>
+                                            <li class="nav-item" role="presentation"><button class="nav-link" type="button" data-utm-param="utm_source">Source <span class="badge bg-primary ms-1" data-utm-count="utm_source">0</span></button></li>
+                                            <li class="nav-item" role="presentation"><button class="nav-link" type="button" data-utm-param="utm_medium">Medium <span class="badge bg-light text-dark ms-1" data-utm-count="utm_medium">0</span></button></li>
+                                            <li class="nav-item" role="presentation"><button class="nav-link" type="button" data-utm-param="utm_content">Content <span class="badge bg-light text-dark ms-1" data-utm-count="utm_content">0</span></button></li>
+                                            <li class="nav-item" role="presentation"><button class="nav-link" type="button" data-utm-param="utm_term">Term <span class="badge bg-light text-dark ms-1" data-utm-count="utm_term">0</span></button></li>
+                                        </ul>
+                                        <div class="d-flex flex-column flex-md-row gap-2 justify-content-between mb-3">
+                                            <input type="search" class="form-control" id="utm-search-input" placeholder="Search UTM value..." style="max-width: 320px;">
+                                            <select class="form-select" id="utm-sort-select" style="max-width: 220px;">
+                                                <option value="page_views">Sort: Page Views</option>
+                                                <option value="visitors">Sort: Visitors</option>
+                                                <option value="value">Sort: Value A-Z</option>
+                                            </select>
+                                        </div>
                                         <div class="table-responsive">
                                             <table class="table table-hover mb-0" id="utm-performance-table">
                                                 <thead>
@@ -202,6 +227,10 @@
                                                     <tr><td colspan="4" class="text-center">Memuat data...</td></tr>
                                                 </tbody>
                                             </table>
+                                        </div>
+                                        <div class="d-flex flex-column flex-md-row gap-2 justify-content-between align-items-md-center mt-3">
+                                            <small class="text-muted" id="utm-result-summary">Showing 0 data</small>
+                                            <ul class="pagination pagination-sm mb-0" id="utm-pagination"></ul>
                                         </div>
                                     </div>
                                 </div>
@@ -313,42 +342,108 @@
         return Number(value || 0).toLocaleString('en-US');
     }
 
+    const utmLabels = {
+        utm_campaign: 'Campaign',
+        utm_source: 'Source',
+        utm_medium: 'Medium',
+        utm_content: 'Content',
+        utm_term: 'Term'
+    };
+    let utmRows = [];
+    let utmActiveParam = 'utm_campaign';
+    let utmPage = 1;
+    const utmPerPage = 25;
+
     function renderUtmPerformance(rows, emptyMessage) {
+        utmRows = rows || [];
+        utmPage = 1;
+        renderUtmCounts();
+        renderUtmTable(emptyMessage);
+    }
+
+    function renderUtmCounts() {
+        Object.keys(utmLabels).forEach(parameter => {
+            const count = utmRows.filter(item => item.parameter === parameter).length;
+            $(`[data-utm-count="${parameter}"]`).text(count);
+        });
+    }
+
+    function renderUtmTable(emptyMessage = 'Belum ada traffic dengan UTM.') {
         const utmTableBody = $('#utm-performance-table tbody');
+        const search = ($('#utm-search-input').val() || '').toLowerCase();
+        const sortBy = $('#utm-sort-select').val() || 'page_views';
+        let filteredRows = utmRows.filter(item => item.parameter === utmActiveParam);
+
+        if (search) {
+            filteredRows = filteredRows.filter(item => String(item.value || '').toLowerCase().includes(search));
+        }
+
+        filteredRows.sort((a, b) => {
+            if (sortBy === 'value') {
+                return String(a.value || '').localeCompare(String(b.value || ''));
+            }
+
+            return Number(b[sortBy] || 0) - Number(a[sortBy] || 0);
+        });
+
+        const totalRows = filteredRows.length;
+        const totalPages = Math.max(Math.ceil(totalRows / utmPerPage), 1);
+        utmPage = Math.min(utmPage, totalPages);
+        const start = (utmPage - 1) * utmPerPage;
+        const pageRows = filteredRows.slice(start, start + utmPerPage);
+        const maxPageViews = Math.max(...filteredRows.map(item => Number(item.page_views || 0)), 1);
+
         utmTableBody.empty();
 
-        if (!rows || rows.length === 0) {
+        if (utmRows.length === 0) {
             utmTableBody.append(`<tr><td colspan="4" class="text-center">${emptyMessage}</td></tr>`);
+            $('#utm-result-summary').text('Showing 0 data');
+            $('#utm-pagination').empty();
             return;
         }
 
-        const groups = rows.reduce((carry, item) => {
-            const parameter = item.parameter || 'utm';
-            carry[parameter] = carry[parameter] || [];
-            carry[parameter].push(item);
-            return carry;
-        }, {});
+        if (pageRows.length === 0) {
+            utmTableBody.append(`<tr><td colspan="4" class="text-center">Tidak ada data untuk ${utmLabels[utmActiveParam]}.</td></tr>`);
+        }
 
-        Object.keys(groups).forEach(parameter => {
-            const items = groups[parameter];
-            const maxPageViews = Math.max(...items.map(item => Number(item.page_views || 0)), 1);
+        pageRows.forEach(item => {
+            const pageViews = Number(item.page_views || 0);
+            const percentage = Math.max((pageViews / maxPageViews) * 100, pageViews > 0 ? 3 : 0);
 
-            utmTableBody.append(`<tr class="utm-group-row"><td colspan="4">${escapeHtml(parameter.replace('utm_', 'UTM '))}</td></tr>`);
-
-            items.forEach(item => {
-                const pageViews = Number(item.page_views || 0);
-                const percentage = Math.max((pageViews / maxPageViews) * 100, pageViews > 0 ? 3 : 0);
-
-                utmTableBody.append(`
-                    <tr>
-                        <td class="utm-value-cell" title="${escapeHtml(item.value || '-')}"><strong>${escapeHtml(item.value || '-')}</strong></td>
-                        <td class="text-end">${formatNumber(item.visitors)}</td>
-                        <td class="text-end">${formatNumber(pageViews)}</td>
-                        <td><div class="utm-bar-track"><div class="utm-bar-fill" style="width: ${percentage}%"></div></div></td>
-                    </tr>
-                `);
-            });
+            utmTableBody.append(`
+                <tr>
+                    <td class="utm-value-cell" title="${escapeHtml(item.value || '-')}"><strong>${escapeHtml(item.value || '-')}</strong></td>
+                    <td class="text-end">${formatNumber(item.visitors)}</td>
+                    <td class="text-end">${formatNumber(pageViews)}</td>
+                    <td><div class="utm-bar-track"><div class="utm-bar-fill" style="width: ${percentage}%"></div></div></td>
+                </tr>
+            `);
         });
+
+        const end = Math.min(start + pageRows.length, totalRows);
+        $('#utm-result-summary').text(totalRows ? `Showing ${start + 1}-${end} of ${totalRows} ${utmLabels[utmActiveParam]}` : `Showing 0 ${utmLabels[utmActiveParam]}`);
+        renderUtmPagination(totalPages);
+    }
+
+    function renderUtmPagination(totalPages) {
+        const pagination = $('#utm-pagination');
+        pagination.empty();
+
+        const button = (page, label = page, disabled = false, active = false) => `
+            <li class="page-item ${disabled ? 'disabled' : ''} ${active ? 'active' : ''}">
+                <button class="page-link" type="button" data-utm-page="${page}" ${disabled ? 'disabled' : ''}>${label}</button>
+            </li>
+        `;
+
+        pagination.append(button(Math.max(utmPage - 1, 1), 'Previous', utmPage === 1));
+
+        for (let page = 1; page <= totalPages; page++) {
+            if (page === 1 || page === totalPages || Math.abs(page - utmPage) <= 1) {
+                pagination.append(button(page, page, false, page === utmPage));
+            }
+        }
+
+        pagination.append(button(Math.min(utmPage + 1, totalPages), 'Next', utmPage === totalPages));
     }
 
     // Fungsi untuk mengambil dan memperbarui data
@@ -501,6 +596,24 @@
 
         // Event listener untuk tombol filter
         $('#filterDataBtn').on('click', fetchAndUpdateData);
+
+        $('#utm-tabs').on('click', '.nav-link', function() {
+            $('#utm-tabs .nav-link').removeClass('active');
+            $(this).addClass('active');
+            utmActiveParam = $(this).data('utm-param');
+            utmPage = 1;
+            renderUtmTable();
+        });
+
+        $('#utm-search-input, #utm-sort-select').on('input change', function() {
+            utmPage = 1;
+            renderUtmTable();
+        });
+
+        $('#utm-pagination').on('click', '[data-utm-page]', function() {
+            utmPage = Number($(this).data('utm-page'));
+            renderUtmTable();
+        });
     });
 
     // Fungsi copy (dibuat sederhana untuk contoh)
