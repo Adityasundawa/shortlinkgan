@@ -344,12 +344,31 @@ class MicrositeLinkController extends Controller
                 ->values()
             : collect();
 
+        $hasButtonClicksColumn = Schema::hasColumn('microsite_link_buttons', 'clicks');
+        $buttonClicksQuery = MicrositeLinkButton::where('microsite_links_id', $project_id)
+            ->select('id', 'title', 'url')
+            ->selectRaw($hasButtonClicksColumn ? 'clicks' : '0 as clicks');
+
+        if ($hasButtonClicksColumn) {
+            $buttonClicksQuery->orderByDesc('clicks');
+        }
+
+        $buttonClicks = $buttonClicksQuery
+            ->get()
+            ->map(fn ($button) => [
+                'id' => $button->id,
+                'title' => $button->title,
+                'url' => $button->url,
+                'clicks' => (int) ($button->clicks ?? 0),
+            ]);
+
         return response()->json([
             'dailyTraffic' => $dailyTraffic,
             'trafficByCountry' => $trafficByCountry,
             'trafficByCity' => $trafficByCity,
             'trafficByDevice' => $trafficByDevice,
             'utmPerformance' => $utmPerformance,
+            'buttonClicks' => $buttonClicks,
         ]);
     }
 

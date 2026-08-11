@@ -165,6 +165,10 @@ class HuftApiController extends Controller
         $buttonId = $request->input('button_id');
         $button = MicrositeLinkButton::find($buttonId);
         if ($button) {
+            if (! Schema::hasColumn('microsite_link_buttons', 'clicks')) {
+                return response()->json(['status' => 'success', 'message' => 'Click accepted.']);
+            }
+
             // Atomically increment the 'clicks' column to prevent race conditions
             $button->increment('clicks');
 

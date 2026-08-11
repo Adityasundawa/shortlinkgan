@@ -156,7 +156,7 @@ if (isset($response->data->pop_unders) && is_array($response->data->pop_unders) 
 
                                 if (count($micrositePopUnder) == 0) {
                                 ?>
-                                    <a href="<?= htmlspecialchars(appendMicrositeUtmParams($button->url ?? '#')); ?>" target="_blank" class="link link_circle link_circle_shadow">
+                                    <a href="<?= htmlspecialchars(appendMicrositeUtmParams($button->url ?? '#')); ?>" onclick="trackButtonClick(<?= (int) ($button->id ?? 0); ?>)" target="_blank" class="link link_circle link_circle_shadow">
                                         <div class="link_outer_text">
                                             <div class="text text_center">
                                                 <strong><?= htmlspecialchars($button->title ?? 'Link'); ?></strong>
@@ -165,7 +165,7 @@ if (isset($response->data->pop_unders) && is_array($response->data->pop_unders) 
                                     </a>
                                 <?php
                                 } else { ?>
-                                    <a href="javascript:void(0);" onclick="redirectLink(<?= htmlspecialchars(json_encode($button->url ?? '#')); ?>)" target="_blank" class="link link_circle link_circle_shadow">
+                                    <a href="javascript:void(0);" onclick="redirectLink(<?= htmlspecialchars(json_encode($button->url ?? '#')); ?>, <?= (int) ($button->id ?? 0); ?>)" target="_blank" class="link link_circle link_circle_shadow">
                                         <div class="link_outer_text">
                                             <div class="text text_center">
                                                 <strong><?= htmlspecialchars($button->title ?? 'Link'); ?></strong>
@@ -313,6 +313,23 @@ if (!empty($microsite_pop_under)) {
 ?>
 
 <script>
+    function trackButtonClick(buttonId) {
+        if (!buttonId) {
+            return;
+        }
+
+        fetch('<?= $_ENV['API_URL']; ?>track-click', {
+            method: 'POST',
+            keepalive: true,
+            headers: {
+                'Authorization': 'Bearer <?= $_ENV['API_KEY']; ?>',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ button_id: buttonId })
+        }).catch(error => console.error('Gagal melacak klik button:', error));
+    }
+
     function appendCurrentQueryParams(url) {
         const currentParams = new URLSearchParams(window.location.search);
 
@@ -334,7 +351,9 @@ if (!empty($microsite_pop_under)) {
         }
     }
 
-    function redirectLink(originalUrl) {
+    function redirectLink(originalUrl, buttonId) {
+        trackButtonClick(buttonId);
+
         // Pastikan $randomData ada dan memiliki properti url sebelum mengaksesnya
         const popUnderUrl = appendCurrentQueryParams(<?= json_encode($randomData->url ?? null); ?>);
         const destinationUrl = appendCurrentQueryParams(originalUrl);

@@ -12,6 +12,7 @@ class MicrositeLinkButton extends Model
     protected $fillable = [
         'title',
         'url',
+        'clicks',
         'microsite_links_id',
 
     ];

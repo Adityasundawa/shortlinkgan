@@ -9,12 +9,13 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-     public function up(): void
+    public function up(): void
     {
-        Schema::table('microsite_link_buttons', function (Blueprint $table) {
-            // Add a column to count clicks, defaulting to 0
-            $table->unsignedBigInteger('clicks')->default(0)->after('url');
-        });
+        if (! Schema::hasColumn('microsite_link_buttons', 'clicks')) {
+            Schema::table('microsite_link_buttons', function (Blueprint $table) {
+                $table->unsignedBigInteger('clicks')->default(0)->after('url');
+            });
+        }
     }
 
     /**
@@ -22,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('microsite_link_buttons', function (Blueprint $table) {
-            $table->dropColumn('clicks');
-        });
+        if (Schema::hasColumn('microsite_link_buttons', 'clicks')) {
+            Schema::table('microsite_link_buttons', function (Blueprint $table) {
+                $table->dropColumn('clicks');
+            });
+        }
     }
 };

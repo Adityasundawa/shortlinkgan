@@ -48,6 +48,13 @@
         color: #2f80ed;
         border-bottom-color: #2f80ed;
     }
+
+    .button-click-url {
+        max-width: 420px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 </style>
 @endsection
 
@@ -162,6 +169,34 @@
                                                         <th>Negara</th>
                                                         <th>Visitors</th>
                                                         <th>Page Views</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr><td colspan="4" class="text-center">Memuat data...</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- TABEL CLICK BUTTON --}}
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card shadow-none border">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Button Clicks</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover mb-0" id="button-clicks-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Caption</th>
+                                                        <th>Button Link</th>
+                                                        <th class="text-end">Clicks</th>
+                                                        <th style="width: 32%"></th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -421,6 +456,32 @@
         pagination.append(button(Math.min(utmPage + 1, totalPages), 'Next', utmPage === totalPages));
     }
 
+    function renderButtonClicks(rows) {
+        const tableBody = $('#button-clicks-table tbody');
+        tableBody.empty();
+
+        if (!rows || rows.length === 0) {
+            tableBody.append('<tr><td colspan="4" class="text-center">Belum ada button di microsite ini.</td></tr>');
+            return;
+        }
+
+        const maxClicks = Math.max(...rows.map(item => Number(item.clicks || 0)), 1);
+
+        rows.forEach(item => {
+            const clicks = Number(item.clicks || 0);
+            const percentage = Math.max((clicks / maxClicks) * 100, clicks > 0 ? 3 : 0);
+
+            tableBody.append(`
+                <tr>
+                    <td><strong>${escapeHtml(item.title || 'Button')}</strong></td>
+                    <td class="button-click-url" title="${escapeHtml(item.url || '-')}">${escapeHtml(item.url || '-')}</td>
+                    <td class="text-end">${formatNumber(clicks)}</td>
+                    <td><div class="utm-bar-track"><div class="utm-bar-fill" style="width: ${percentage}%"></div></div></td>
+                </tr>
+            `);
+        });
+    }
+
     // Fungsi untuk mengambil dan memperbarui data
     function fetchAndUpdateData() {
         const dateRange = $('#dateRangePicker').data('daterangepicker');
@@ -430,6 +491,7 @@
         // Tampilkan loading state
         $('#city-traffic-table tbody').html('<tr><td colspan="4" class="text-center">Memuat data...</td></tr>');
         $('#utm-performance-table tbody').html('<tr><td colspan="4" class="text-center">Memuat data...</td></tr>');
+        $('#button-clicks-table tbody').html('<tr><td colspan="4" class="text-center">Memuat data...</td></tr>');
 
         axios.get(analyticUrl, {
             params: {
@@ -484,6 +546,7 @@
                 });
             }
 
+            renderButtonClicks(data.buttonClicks);
             renderUtmPerformance(data.utmPerformance, 'Belum ada traffic dengan UTM untuk microsite ini.');
 
             notyf.success('Data analitik berhasil diperbarui!');
@@ -491,6 +554,7 @@
         .catch(error => {
             console.error('Error fetching data:', error);
             $('#city-traffic-table tbody').html('<tr><td colspan="4" class="text-center text-danger">Gagal memuat data. Periksa koneksi atau server.</td></tr>');
+            $('#button-clicks-table tbody').html('<tr><td colspan="4" class="text-center text-danger">Gagal memuat data.</td></tr>');
             $('#utm-performance-table tbody').html('<tr><td colspan="4" class="text-center text-danger">Gagal memuat data.</td></tr>');
             notyf.error('Gagal mengambil data analitik.');
         });
