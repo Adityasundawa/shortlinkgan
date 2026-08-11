@@ -388,7 +388,7 @@
             utmTableBody.empty();
 
             if (!data.utmPerformance || data.utmPerformance.length === 0) {
-                utmTableBody.append('<tr><td colspan="4" class="text-center">Belum ada UTM yang diset untuk short link dalam campaign ini.</td></tr>');
+                utmTableBody.append('<tr><td colspan="4" class="text-center">Belum ada traffic dengan UTM untuk short link dalam campaign ini.</td></tr>');
             } else {
                 data.utmPerformance.forEach(item => {
                     utmTableBody.append(`

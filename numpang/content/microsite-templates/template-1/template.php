@@ -227,7 +227,8 @@ if (isset($response->data->pop_unders) && is_array($response->data->pop_unders) 
                 operating_system: getOperatingSystem(),
                 browser: getBrowser(),
                 device_type: serverData.device_type,
-                fingerprint_id: fingerprint_id
+                fingerprint_id: fingerprint_id,
+                ...Object.fromEntries(new URLSearchParams(window.location.search).entries())
             };
             const apiToken = 'Bearer <?= $_ENV['API_KEY']; ?>'; 
             // --- Kirim data ke API sebagai JSON (seperti skrip kedua) ---

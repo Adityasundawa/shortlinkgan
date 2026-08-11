@@ -23,6 +23,11 @@ class TraffictController extends Controller
             'city' => 'nullable|string|max:255',
             'device_type' => 'required|string|max:255',
             'fingerprint_id' => 'required|string|max:255',
+            'utm_campaign' => 'nullable|string|max:255',
+            'utm_medium' => 'nullable|string|max:255',
+            'utm_source' => 'nullable|string|max:255',
+            'utm_content' => 'nullable|string|max:255',
+            'utm_term' => 'nullable|string|max:255',
         ]);
 
         // Langkah 2: Cari ShortLink dan Domain berdasarkan input.
@@ -64,6 +69,7 @@ class TraffictController extends Controller
         if (! $hasFingerprintColumn) {
             unset($dataToCreate['fingerprint_id']);
         }
+        $this->removeMissingUtmColumns('short_link_trafficts', $dataToCreate);
 
         // Langkah 6: Buat record baru.
         $traffic = ShortLinkTraffict::create($dataToCreate);
@@ -81,6 +87,11 @@ class TraffictController extends Controller
             'city' => 'nullable|string|max:255',
             'device_type' => 'required|string|max:255',
             'fingerprint_id' => 'required|string|max:255',
+            'utm_campaign' => 'nullable|string|max:255',
+            'utm_medium' => 'nullable|string|max:255',
+            'utm_source' => 'nullable|string|max:255',
+            'utm_content' => 'nullable|string|max:255',
+            'utm_term' => 'nullable|string|max:255',
         ]);
 
         // Langkah 2: Cari ShortLink dan Domain berdasarkan input.
@@ -122,11 +133,21 @@ class TraffictController extends Controller
         if (! $hasFingerprintColumn) {
             unset($dataToCreate['fingerprint_id']);
         }
+        $this->removeMissingUtmColumns('microsite_link_trafficts', $dataToCreate);
 
         // Langkah 6: Buat record baru.
         $traffic = MicrositeLinkTrafficts::create($dataToCreate);
 
         return response()->json($traffic, 201);
 
+    }
+
+    private function removeMissingUtmColumns(string $table, array &$data): void
+    {
+        foreach (['utm_campaign', 'utm_medium', 'utm_source', 'utm_content', 'utm_term'] as $column) {
+            if (! Schema::hasColumn($table, $column)) {
+                unset($data[$column]);
+            }
+        }
     }
 }

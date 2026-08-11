@@ -353,21 +353,47 @@ class ProjectAnalyticController extends Controller
             ->selectRaw($visitorAggregate.' as visitors')
             ->first();
 
-        $utmPerformance = collect([
-            'utm_campaign' => $shortLink->utm_campaign,
-            'utm_source' => $shortLink->utm_source,
-            'utm_medium' => $shortLink->utm_medium,
-            'utm_content' => $shortLink->utm_content,
-            'utm_term' => $shortLink->utm_term,
-        ])
-            ->filter(fn ($value) => filled($value))
-            ->map(fn ($value, $parameter) => [
-                'parameter' => $parameter,
-                'value' => $value,
-                'page_views' => (int) ($summaryStats->page_views ?? 0),
-                'visitors' => (int) ($summaryStats->visitors ?? 0),
+        $utmColumns = ['utm_campaign', 'utm_source', 'utm_medium', 'utm_content', 'utm_term'];
+        $hasTrafficUtmColumns = collect($utmColumns)
+            ->every(fn ($column) => Schema::hasColumn('short_link_trafficts', $column));
+
+        $utmPerformance = $hasTrafficUtmColumns
+            ? collect($utmColumns)
+                ->flatMap(function ($parameter) use ($baseQuery, $visitorAggregate) {
+                    return (clone $baseQuery)
+                        ->whereNotNull($parameter)
+                        ->where($parameter, '!=', '')
+                        ->selectRaw('? as parameter', [$parameter])
+                        ->select("$parameter as value")
+                        ->selectRaw('SUM(visitor_day) as page_views')
+                        ->selectRaw($visitorAggregate.' as visitors')
+                        ->groupBy($parameter)
+                        ->orderByDesc('visitors')
+                        ->get();
+                })
+                ->sortByDesc('visitors')
+                ->values()
+                ->map(fn ($item) => [
+                    'parameter' => $item->parameter,
+                    'value' => $item->value,
+                    'page_views' => (int) $item->page_views,
+                    'visitors' => (int) $item->visitors,
+                ])
+            : collect([
+                'utm_campaign' => $shortLink->utm_campaign,
+                'utm_source' => $shortLink->utm_source,
+                'utm_medium' => $shortLink->utm_medium,
+                'utm_content' => $shortLink->utm_content,
+                'utm_term' => $shortLink->utm_term,
             ])
-            ->values();
+                ->filter(fn ($value) => filled($value))
+                ->map(fn ($value, $parameter) => [
+                    'parameter' => $parameter,
+                    'value' => $value,
+                    'page_views' => (int) ($summaryStats->page_views ?? 0),
+                    'visitors' => (int) ($summaryStats->visitors ?? 0),
+                ])
+                ->values();
 
         return response()->json([
             'dailyTraffic' => $dailyTraffic,

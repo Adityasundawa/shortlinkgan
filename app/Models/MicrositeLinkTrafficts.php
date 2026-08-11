@@ -8,7 +8,24 @@ use Illuminate\Database\Eloquent\Model;
 class MicrositeLinkTrafficts extends Model
 {
     use HasFactory;
-    protected $fillable = ['date', 'unique_visitor_day', 'visitor_day', 'microsite_links_id', 'domain_decentralizes_id','fingerprint_id','city','country','device_type'];
+
+    protected $fillable = [
+        'date',
+        'unique_visitor_day',
+        'visitor_day',
+        'microsite_links_id',
+        'domain_decentralizes_id',
+        'fingerprint_id',
+        'city',
+        'country',
+        'device_type',
+        'utm_campaign',
+        'utm_medium',
+        'utm_source',
+        'utm_content',
+        'utm_term',
+    ];
+
     public function micrositeLink()
     {
         return $this->belongsTo(MicrositeLink::class);

@@ -29,6 +29,28 @@ function getDeviceType() {
     return $isMobile ? 'Mobile' : 'Desktop';
 }
 
+function getRequestUtmParams() {
+    $utmParams = [];
+
+    foreach (['utm_campaign', 'utm_medium', 'utm_source', 'utm_content', 'utm_term'] as $key) {
+        if (isset($_GET[$key]) && $_GET[$key] !== '') {
+            $utmParams[$key] = substr((string) $_GET[$key], 0, 255);
+        }
+    }
+
+    return $utmParams;
+}
+
+function appendQueryParams($url, array $params) {
+    if (empty($params) || empty($url)) {
+        return $url;
+    }
+
+    $separator = strpos($url, '?') === false ? '?' : '&';
+
+    return $url . $separator . http_build_query($params);
+}
+
 $userIp = getIpAddress();
 $deviceType = getDeviceType();
 
@@ -41,6 +63,7 @@ if ($locationData && $locationData->status == 'success') {
     $country = $locationData->country;
     $city = $locationData->city;
 }
+$requestUtmParams = getRequestUtmParams();
 
 // --- B. Logika Pemilihan URL (Weighted Random Redirect) ---
 $data = $response->data ?? (object) [];
@@ -72,6 +95,8 @@ if (isset($data->pop_unders) && is_array($data->pop_unders) && count($data->pop_
         $targetUrl = $weightedUrls[$randomIndex];
     }
 } 
+
+$targetUrl = appendQueryParams($targetUrl, $requestUtmParams);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -150,7 +175,8 @@ if (isset($data->pop_unders) && is_array($data->pop_unders) && count($data->pop_
                     country: serverData.country,
                     city: serverData.city,
                     device_type: serverData.device_type,
-                    fingerprint_id: fingerprint_id
+                    fingerprint_id: fingerprint_id,
+                    ...Object.fromEntries(new URLSearchParams(window.location.search).entries())
                 };
                 
                 console.log("Data tracking yang akan dikirim:", payload);

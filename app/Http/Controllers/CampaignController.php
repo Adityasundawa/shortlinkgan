@@ -335,9 +335,28 @@ class CampaignController extends Controller
             ->limit(15)
             ->get();
 
-        $utmPerformance = collect(['utm_campaign', 'utm_source', 'utm_medium', 'utm_content', 'utm_term'])
-            ->flatMap(function ($parameter) use ($baseQuery, $qualifiedVisitorAggregate) {
-                return (clone $baseQuery)
+        $utmColumns = ['utm_campaign', 'utm_source', 'utm_medium', 'utm_content', 'utm_term'];
+        $hasTrafficUtmColumns = collect($utmColumns)
+            ->every(fn ($column) => Schema::hasColumn('short_link_trafficts', $column));
+
+        $utmPerformance = collect($utmColumns)
+            ->flatMap(function ($parameter) use ($baseQuery, $hasTrafficUtmColumns, $qualifiedVisitorAggregate) {
+                $query = clone $baseQuery;
+
+                if ($hasTrafficUtmColumns) {
+                    return $query
+                        ->whereNotNull("short_link_trafficts.$parameter")
+                        ->where("short_link_trafficts.$parameter", '!=', '')
+                        ->selectRaw('? as parameter', [$parameter])
+                        ->select("short_link_trafficts.$parameter as value")
+                        ->selectRaw('SUM(short_link_trafficts.visitor_day) as page_views')
+                        ->selectRaw($qualifiedVisitorAggregate.' as visitors')
+                        ->groupBy("short_link_trafficts.$parameter")
+                        ->orderByDesc('visitors')
+                        ->get();
+                }
+
+                return $query
                     ->join('short_links', 'short_link_trafficts.short_links_id', '=', 'short_links.id')
                     ->whereNotNull("short_links.$parameter")
                     ->where("short_links.$parameter", '!=', '')
