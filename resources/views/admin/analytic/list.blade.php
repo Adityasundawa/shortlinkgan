@@ -1084,8 +1084,8 @@
                         (Array.isArray(data.pop_unders) ? data.pop_unders :
                             (Array.isArray(data.short_links_pop_unders) ? data.short_links_pop_unders : []));
                     const isMultiRedirect = Boolean(data.is_multi_redirect) || (data.is_popunder === 'yes') ||
-                        data.original_url === 'multi-redirect-link' || redirects.length > 0;
-                    const originalUrlValue = isMultiRedirect ? '' : (data.original_url || '');
+                        redirects.length > 0;
+                    const originalUrlValue = isMultiRedirect ? '' : (data.original_url_value || data.original_url || '');
                     multiRedirectCheckbox.prop('checked', isMultiRedirect);
 
                     if (isMultiRedirect) {

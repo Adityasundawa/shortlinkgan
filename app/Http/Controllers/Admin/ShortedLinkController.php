@@ -72,16 +72,36 @@ class ShortedLinkController extends Controller
                 ->get(['id', 'label_name'])
                 ->values();
 
-            // Menambahkan array label ke data
-            $data->labels = $labels;
-            $data->redirects = $data->popUnders->values();
-            $data->is_multi_redirect = $data->is_popunder === 'yes'
-                || $data->original_url === 'multi-redirect-link'
-                || $data->popUnders->isNotEmpty();
+            $redirects = $data->popUnders->values();
+            $isMultiRedirect = $data->is_popunder === 'yes' || $redirects->isNotEmpty();
 
-            Log::info('Data berhasil diambil:', ['data' => $data]);
+            $response = [
+                'id' => $data->id,
+                'campaign_name' => $data->campaign_name,
+                'description' => $data->description,
+                'short_url' => $data->short_url,
+                'original_url' => $data->original_url,
+                'original_url_value' => $data->original_url === 'multi-redirect-link' ? '' : ($data->original_url ?? ''),
+                'utm_campaign' => $data->utm_campaign,
+                'utm_medium' => $data->utm_medium,
+                'utm_source' => $data->utm_source,
+                'utm_content' => $data->utm_content,
+                'utm_term' => $data->utm_term,
+                'is_popunder' => $data->is_popunder,
+                'is_multi_redirect' => $isMultiRedirect,
+                'images_background' => $data->images_background,
+                'custom_title' => $data->custom_title,
+                'custom_description' => $data->custom_description,
+                'type_short_links' => $data->type_short_links,
+                'campaign_id' => $data->campaign_id,
+                'labels' => $labels,
+                'redirects' => $redirects,
+                'pop_unders' => $redirects,
+            ];
 
-            return response()->json($data);
+            Log::info('Data berhasil diambil:', ['data' => $response]);
+
+            return response()->json($response);
         } catch (\Exception $e) {
             Log::error('Error:', ['message' => $e->getMessage()]);
 
