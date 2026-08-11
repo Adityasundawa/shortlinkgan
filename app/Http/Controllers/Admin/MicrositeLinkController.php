@@ -317,11 +317,39 @@ class MicrositeLinkController extends Controller
             ->orderByDesc('visitors')
             ->get();
 
+        $utmColumns = ['utm_campaign', 'utm_source', 'utm_medium', 'utm_content', 'utm_term'];
+        $hasTrafficUtmColumns = collect($utmColumns)
+            ->every(fn ($column) => Schema::hasColumn('microsite_link_trafficts', $column));
+
+        $utmPerformance = $hasTrafficUtmColumns
+            ? collect($utmColumns)
+                ->flatMap(function ($parameter) use ($baseQuery, $visitorAggregate) {
+                    return (clone $baseQuery)
+                        ->whereNotNull($parameter)
+                        ->where($parameter, '!=', '')
+                        ->select("$parameter as value")
+                        ->selectRaw('SUM(visitor_day) as page_views')
+                        ->selectRaw($visitorAggregate.' as visitors')
+                        ->groupBy($parameter)
+                        ->orderByDesc('visitors')
+                        ->get()
+                        ->map(fn ($item) => [
+                            'parameter' => $parameter,
+                            'value' => $item->value,
+                            'page_views' => (int) $item->page_views,
+                            'visitors' => (int) $item->visitors,
+                        ]);
+                })
+                ->sortByDesc('visitors')
+                ->values()
+            : collect();
+
         return response()->json([
             'dailyTraffic' => $dailyTraffic,
             'trafficByCountry' => $trafficByCountry,
             'trafficByCity' => $trafficByCity,
             'trafficByDevice' => $trafficByDevice,
+            'utmPerformance' => $utmPerformance,
         ]);
     }
 

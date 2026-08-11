@@ -67,19 +67,14 @@ class ShortedLinkController extends Controller
             $data = ShortLink::with('popUnders')->findOrFail($id);
             abort_if($data->user_id !== Auth::id() && ! Auth::user()->isAdmin(), 403);
 
-            $labels = [];
-
-            $labellinks = LabelShortlink::where('short_links_id', $data->id)->get();
-
-            foreach ($labellinks as $labellink) {
-                $label = Label::find($labellink->labels_id);
-
-                $labels[] = $label;
-            }
+            $labels = Label::query()
+                ->whereIn('id', LabelShortlink::where('short_links_id', $data->id)->select('labels_id'))
+                ->get(['id', 'label_name'])
+                ->values();
 
             // Menambahkan array label ke data
             $data->labels = $labels;
-            $data->redirects = $data->popUnders;
+            $data->redirects = $data->popUnders->values();
             $data->is_multi_redirect = $data->is_popunder === 'yes'
                 || $data->original_url === 'multi-redirect-link'
                 || $data->popUnders->isNotEmpty();

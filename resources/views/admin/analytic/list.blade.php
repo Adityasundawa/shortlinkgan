@@ -1041,8 +1041,19 @@
         function openEdit(dataID) {
             $('#modalEdit').modal('show');
             $('#edit_images_background').val('');
-            // Kosongkan Multi Redirect Form sebelum memuat data baru
             $('#edit-multi-redirect-form').empty();
+            $('#edit-original-url-group').show();
+            $('#edit_original_url')
+                .prop('disabled', false)
+                .prop('required', true)
+                .val('')
+                .data('originalValue', '');
+            $('#editSetMultiRedirect').prop('checked', false);
+            $('#edit-multi-redirect-section').hide();
+            $('#editSetUTM').prop('checked', false);
+            $('#edit-utm-section').hide();
+            $('#edit_utm_campaign, #edit_utm_source, #edit_utm_medium, #edit_utm_content, #edit_utm_term').val('');
+            $('#edit_tags').val('');
 
             // Menggunakan JQuery untuk konsistensi pada input URL
             const $originalUrlInput = $('#edit_original_url');
@@ -1069,10 +1080,12 @@
                     // ----------------------------------------------------
                     // LOGIKA PENGISIAN MULTI REDIRECT DAN ORIGINAL URL
                     // ----------------------------------------------------
-                    let originalUrlValue = data.original_url === 'multi-redirect-link' ? '' : (data.original_url || '');
-                    const redirects = data.redirects || data.pop_unders || data.short_links_pop_unders || [];
-                    const isMultiRedirect = data.is_multi_redirect || (data.is_popunder === 'yes') ||
+                    const redirects = Array.isArray(data.redirects) ? data.redirects :
+                        (Array.isArray(data.pop_unders) ? data.pop_unders :
+                            (Array.isArray(data.short_links_pop_unders) ? data.short_links_pop_unders : []));
+                    const isMultiRedirect = Boolean(data.is_multi_redirect) || (data.is_popunder === 'yes') ||
                         data.original_url === 'multi-redirect-link' || redirects.length > 0;
+                    const originalUrlValue = isMultiRedirect ? '' : (data.original_url || '');
                     multiRedirectCheckbox.prop('checked', isMultiRedirect);
 
                     if (isMultiRedirect) {
@@ -1094,10 +1107,11 @@
                     // ----------------------------------------------------
 
 
-                    if (data.labels.length > 0) {
-                        var allLabels = data.labels.map(function(label) {
+                    const labels = Array.isArray(data.labels) ? data.labels.filter(Boolean) : [];
+                    if (labels.length > 0) {
+                        var allLabels = labels.map(function(label) {
                             return label.label_name;
-                        });
+                        }).filter(Boolean);
                         $('#edit_tags').val(allLabels.join(','));
                     }
                     // Hancurkan dan buat ulang instance Choices (PENTING untuk tags)
@@ -1141,10 +1155,6 @@
                              $('#edit_utm_term').val('');
                         }
                     }
-
-                    // Panggil change event untuk UTM checkbox untuk sinkronisasi tampilan
-                    $('#editSetUTM').trigger('change');
-
 
                     $('#edit_result_link').val(data.short_url);
                     $('.alt-domain').each(function(index, altDomain) {

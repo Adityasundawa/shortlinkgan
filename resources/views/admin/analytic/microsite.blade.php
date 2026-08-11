@@ -131,6 +131,34 @@
                             </div>
                         </div>
 
+                        {{-- TABEL PERFORMA UTM --}}
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card shadow-none border">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Performa UTM</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover mb-0" id="utm-performance-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Parameter</th>
+                                                        <th>Value</th>
+                                                        <th>Visitors</th>
+                                                        <th>Page Views</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr><td colspan="4" class="text-center">Memuat data...</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         {{-- Card Domain Active (seperti kode Anda sebelumnya) --}}
                         <div class="row">
                             <div class="col-12">
@@ -227,6 +255,7 @@
 
         // Tampilkan loading state
         $('#city-traffic-table tbody').html('<tr><td colspan="4" class="text-center">Memuat data...</td></tr>');
+        $('#utm-performance-table tbody').html('<tr><td colspan="4" class="text-center">Memuat data...</td></tr>');
 
         axios.get(analyticUrl, {
             params: {
@@ -281,11 +310,32 @@
                 });
             }
 
+            // --- 5. Update UTM Performance Table ---
+            const utmTableBody = $('#utm-performance-table tbody');
+            utmTableBody.empty();
+
+            if (!data.utmPerformance || data.utmPerformance.length === 0) {
+                utmTableBody.append('<tr><td colspan="4" class="text-center">Belum ada traffic dengan UTM untuk microsite ini.</td></tr>');
+            } else {
+                data.utmPerformance.forEach(item => {
+                    const parameter = item.parameter || 'utm';
+                    utmTableBody.append(`
+                        <tr>
+                            <td><span class="badge bg-primary">${parameter}</span></td>
+                            <td>${item.value}</td>
+                            <td>${item.visitors}</td>
+                            <td>${item.page_views}</td>
+                        </tr>
+                    `);
+                });
+            }
+
             notyf.success('Data analitik berhasil diperbarui!');
         })
         .catch(error => {
             console.error('Error fetching data:', error);
             $('#city-traffic-table tbody').html('<tr><td colspan="4" class="text-center text-danger">Gagal memuat data. Periksa koneksi atau server.</td></tr>');
+            $('#utm-performance-table tbody').html('<tr><td colspan="4" class="text-center text-danger">Gagal memuat data.</td></tr>');
             notyf.error('Gagal mengambil data analitik.');
         });
     }
