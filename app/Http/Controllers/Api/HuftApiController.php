@@ -11,6 +11,7 @@ use App\Models\ShortLink;
 use App\Models\ShortLinkTraffict;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class HuftApiController extends Controller
 {
@@ -59,11 +60,15 @@ class HuftApiController extends Controller
         if ($request->session()->get('is_traffic') == 'microsite') {
             $request->session()->forget(['ip_address', 'ip_expires_at', 'is_traffic']);
         }
-        $traffic = ShortLinkTraffict::firstOrNew([
+        $utmData = $this->trafficUtmData($request, 'short_link_trafficts');
+
+        $traffic = ShortLinkTraffict::firstOrNew(array_merge([
             'date' => now()->toDateString(),
             'short_links_id' => $short->id,
             'domain_decentralizes_id' => $domain->id,
-        ]);
+        ], $utmData));
+
+        $traffic->fill($utmData);
 
         $traffic->visitor_day = (int) ($traffic->visitor_day ?? 0) + 1;
 
@@ -85,11 +90,15 @@ class HuftApiController extends Controller
 
     protected function handleMicrosite($request, $url, $domain, $ip, $microsite)
     {
-        $traffic = MicrositeLinkTrafficts::firstOrNew([
+        $utmData = $this->trafficUtmData($request, 'microsite_link_trafficts');
+
+        $traffic = MicrositeLinkTrafficts::firstOrNew(array_merge([
             'date' => now()->toDateString(),
             'microsite_links_id' => $microsite->id,
             'domain_decentralizes_id' => $domain->id,
-        ]);
+        ], $utmData));
+
+        $traffic->fill($utmData);
 
         if ($request->session()->get('is_traffic') == 'shortlink') {
             $request->session()->forget(['ip_address', 'ip_expires_at', 'is_traffic']);
@@ -130,6 +139,21 @@ class HuftApiController extends Controller
             || str_contains($columnTypes[$table], 'enum')
             ? ($isUnique ? 'yes' : 'no')
             : ($isUnique ? 1 : 0);
+    }
+
+    private function trafficUtmData(Request $request, string $table): array
+    {
+        $utmData = [];
+
+        foreach (['utm_campaign', 'utm_medium', 'utm_source', 'utm_content', 'utm_term'] as $column) {
+            $value = $request->input($column);
+
+            if ($value !== null && $value !== '' && Schema::hasColumn($table, $column)) {
+                $utmData[$column] = substr((string) $value, 0, 255);
+            }
+        }
+
+        return $utmData;
     }
 
     public function trackButtonClick(Request $request)

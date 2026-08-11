@@ -39,6 +39,19 @@ $headers = array_filter(array(
     'Authorization: Bearer ' . ($_ENV['API_KEY'] ?? ''),
     !empty($_ENV['API_X_APIKEY']) ? 'x-apikey: ' . $_ENV['API_X_APIKEY'] : null,
 ));
+
+$utmParams = [];
+foreach (['utm_campaign', 'utm_medium', 'utm_source', 'utm_content', 'utm_term'] as $utmKey) {
+    if (isset($_GET[$utmKey]) && $_GET[$utmKey] !== '') {
+        $utmParams[$utmKey] = substr((string) $_GET[$utmKey], 0, 255);
+    }
+}
+
+$postFields = array_merge(
+    array('ip_address' => $_SESSION[$sessionName], 'domain' => $apiDomain),
+    $utmParams
+);
+
 curl_setopt_array($curl, array(
     CURLOPT_URL => $_ENV['API_URL'] . $customParamValue,
     CURLOPT_RETURNTRANSFER => true,
@@ -48,7 +61,7 @@ curl_setopt_array($curl, array(
     CURLOPT_FOLLOWLOCATION => true,
     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
     CURLOPT_CUSTOMREQUEST => 'POST',
-    CURLOPT_POSTFIELDS => array('ip_address' => $_SESSION[$sessionName], 'domain' => $apiDomain),
+    CURLOPT_POSTFIELDS => $postFields,
     CURLOPT_HTTPHEADER => $headers,
     CURLOPT_SSL_VERIFYPEER => false,  // Add this line to ignore SSL verification
 ));
