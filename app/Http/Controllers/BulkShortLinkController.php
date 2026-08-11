@@ -14,6 +14,8 @@ class BulkShortLinkController extends Controller
 {
     public function list(Request $request)
     {
+        $perPage = min(max((int) $request->input('per_page', 25), 10), 100);
+
         $datasQuery = ShortLink::query()
             ->with(['user:id,name,user_label,role', 'campaign:id,name'])
             ->withSum('traffics as visitor', 'visitor_day')
@@ -28,15 +30,16 @@ class BulkShortLinkController extends Controller
         } else {
             $tags = [Auth::user()->user_label];
         }
-        $datas = $datasQuery->orderBy('created_at', 'desc')->get();
-        $datas->each(fn ($data) => $data->visitor = (int) ($data->visitor ?? 0));
+        $datas = $datasQuery->orderBy('created_at', 'desc')
+            ->paginate($perPage)
+            ->withQueryString();
+        $datas->through(fn ($data) => tap($data, fn ($data) => $data->visitor = (int) ($data->visitor ?? 0)));
         $campaigns = Campaign::query()
             ->when(! Auth::user()->isAdmin(), fn ($query) => $query->where('user_id', Auth::id()))
             ->get();
         $domains = DomainDecentralize::orderBy('domain_url')->get();
 
-        // 4. Hapus 'search' dari compact()
-        return view('admin.bulkshortlink.index', compact('domains', 'tags', 'datas', 'campaigns')); // ->with(['search' => $search]) dihapus
+        return view('admin.bulkshortlink.index', compact('domains', 'tags', 'datas', 'campaigns', 'perPage'));
     }
 
     public function store(Request $request)

@@ -26,7 +26,6 @@ class ProjectAnalyticController extends Controller
 
         $datasQuery = ShortLink::query()
             ->with(['user:id,name,user_label,role', 'campaign:id,name'])
-            ->withSum('traffics as visitor', 'visitor_day')
             ->where('type_short_links', 'shortlink');
 
         if (! Auth::user()->isAdmin()) {
@@ -57,7 +56,6 @@ class ProjectAnalyticController extends Controller
         $datas = $datasQuery->orderBy('created_at', 'desc')
             ->paginate($perPage)
             ->withQueryString();
-        $datas->through(fn ($data) => tap($data, fn ($data) => $data->visitor = (int) ($data->visitor ?? 0)));
         $campaigns = Campaign::query()
             ->when(! Auth::user()->isAdmin(), fn ($query) => $query->where('user_id', Auth::id()))
             ->get();

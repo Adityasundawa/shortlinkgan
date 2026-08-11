@@ -33,8 +33,8 @@
                               <ul class="list-inline me-auto my-1">
                                 <li class="list-inline-item">
                                     <button type="button" class="btn btn-lg btn-primary rounded-1" data-bs-toggle="modal"
-                                        data-bs-target="#staticBackdrop">
-                                        <i class="fa fa-plus"></i> New Short Link
+                                        data-bs-target="#bulkStaticBackdrop">
+                                        <i class="fa fa-plus"></i> New Bulk Short Link
                                     </button>
                                 </li>
                             </ul>
@@ -77,8 +77,8 @@
 
 
                 {{-- Modal Custom Link --}}
-                  <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false"
-                    tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                  <div class="modal fade" id="bulkStaticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false"
+                    tabindex="-1" aria-labelledby="bulkStaticBackdropLabel" aria-hidden="true">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
                             <div class="modal-header">
@@ -475,9 +475,8 @@
                                         </thead>
                                         <tbody>
                                             @foreach ($datas as $data)
-                                                @if ($data->user_id == auth()->user()->id)
                                                     <tr>
-                                                        <td>{{ $loop->iteration }}</td>
+                                                        <td>{{ $datas->firstItem() + $loop->index }}</td>
                                                         <td>
                                                             <strong>{{ $data->campaign->name ?? 'Untitled' }}</strong><br>
                                                             <small><a href="{{ ENV('APP_URL') . '/' . $data->short_url }}"
@@ -525,14 +524,13 @@
                                                             </div>
                                                         </td>
                                                     </tr>
-                                                @endif
                                             @endforeach
                                         </tbody>
                                     </table>
                                 </div>
-                                {{-- <nav class="mt-5">
+                                <nav class="mt-5">
                                     {{ $datas->links() }}
-                                </nav> --}}
+                                </nav>
                             </div>
                         </div>
 
@@ -551,6 +549,9 @@
     <script src="{{ asset('assets') }}/js/plugins/sweetalert2.all.min.js"></script>
     <script>
         new DataTable('#example', {
+            paging: false,
+            searching: false,
+            info: false,
             language: {
                 emptyTable: 'Tidak ada data bulk short link tersedia.'
             }

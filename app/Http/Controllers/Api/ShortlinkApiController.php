@@ -76,7 +76,7 @@ class ShortlinkApiController extends Controller
         }
     }
 
-    private function uniqueVisitorValue(string $table, bool $isUnique): string|int
+    private function uniqueVisitorValue(string $table, bool $isUnique)
     {
         static $columnTypes = [];
 

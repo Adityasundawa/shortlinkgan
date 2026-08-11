@@ -117,7 +117,7 @@ class HuftApiController extends Controller
         return ['status' => 'success', 'type' => $type, 'data' => $data];
     }
 
-    private function uniqueVisitorValue(string $table, bool $isUnique): string|int
+    private function uniqueVisitorValue(string $table, bool $isUnique)
     {
         static $columnTypes = [];
 

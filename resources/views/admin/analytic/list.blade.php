@@ -486,7 +486,6 @@
                                                 <th>Original URL</th>
                                                 <th>Author</th>
                                                 <th>Tags</th>
-                                                <th>Total Visitor</th>
                                                 <th>Created Date</th>
                                                 <th></th>
                                             </tr>
@@ -514,15 +513,6 @@
                                                         <span
                                                             class="badge bg-primary">{{ $data->user->user_label }}</span>
                                                     </td>
-                                                    {{-- ... kode sebelumnya ...--}}
-                                                    <td data-order="{{ $data->visitor }}">
-                                                        @php
-                                                            $formattedVisitor = number_format($data->visitor);
-                                                        @endphp
-                                                        <i class="ti ti-accessible"></i>
-                                                        <strong>{{ $formattedVisitor }}</strong> Visitor
-                                                    </td>
-                                                    {{-- ... kode setelahnya ...--}}
                                                     <td>{{ Carbon::parse($data->created_at)->format('d M Y') }}</td>
                                                     <td>
                                                         <div
