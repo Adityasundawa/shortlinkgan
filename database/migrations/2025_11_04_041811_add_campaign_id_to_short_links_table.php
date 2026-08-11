@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-       Schema::table('short_links', function (Blueprint $table) {
-            // Menambahkan foreign key 'campaign_id'
-            $table->foreignId('campaign_id')
-                  ->nullable() // 'nullable()' jika shortlink boleh tidak memiliki campaign
-                  ->constrained('campaigns') // 'campaigns' adalah nama tabel campaign
-                  ->onDelete('set null'); // Opsional: jika campaign dihapus, set campaign_id ke NULL
-        });
+        if (! Schema::hasColumn('short_links', 'campaign_id')) {
+            Schema::table('short_links', function (Blueprint $table) {
+                $table->foreignId('campaign_id')
+                    ->nullable()
+                    ->constrained('campaigns')
+                    ->onDelete('set null');
+            });
+        }
     }
 
     /**
@@ -25,10 +26,16 @@ return new class extends Migration
      */
     public function down(): void
     {
-       Schema::table('short_links', function (Blueprint $table) {
-            // Untuk membatalkan (rollback) migrasi
-            $table->dropForeign(['campaign_id']);
-            $table->dropColumn('campaign_id');
-        });
+        if (Schema::hasColumn('short_links', 'campaign_id')) {
+            Schema::table('short_links', function (Blueprint $table) {
+                try {
+                    $table->dropForeign(['campaign_id']);
+                } catch (Throwable) {
+                    //
+                }
+
+                $table->dropColumn('campaign_id');
+            });
+        }
     }
 };

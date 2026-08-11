@@ -12,9 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('short_links', function (Blueprint $table) {
-            $table->string('images_background')->nullable();
-            $table->string('custom_title')->nullable();
-            $table->string('custom_description')->nullable();
+            if (! Schema::hasColumn('short_links', 'images_background')) {
+                $table->string('images_background')->nullable();
+            }
+
+            if (! Schema::hasColumn('short_links', 'custom_title')) {
+                $table->string('custom_title')->nullable();
+            }
+
+            if (! Schema::hasColumn('short_links', 'custom_description')) {
+                $table->string('custom_description')->nullable();
+            }
         });
     }
 
@@ -24,7 +32,11 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('short_links', function (Blueprint $table) {
-            //
+            foreach (['images_background', 'custom_title', 'custom_description'] as $column) {
+                if (Schema::hasColumn('short_links', $column)) {
+                    $table->dropColumn($column);
+                }
+            }
         });
     }
 };

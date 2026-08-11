@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('short_links', function (Blueprint $table) {
-             $table->enum('type_short_links', ['shortlink', 'bulk'])->default('shortlink');
-        });
+        if (! Schema::hasColumn('short_links', 'type_short_links')) {
+            Schema::table('short_links', function (Blueprint $table) {
+                $table->enum('type_short_links', ['shortlink', 'bulk'])->default('shortlink');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('short_links', function (Blueprint $table) {
-            //
-        });
+        if (Schema::hasColumn('short_links', 'type_short_links')) {
+            Schema::table('short_links', function (Blueprint $table) {
+                $table->dropColumn('type_short_links');
+            });
+        }
     }
 };

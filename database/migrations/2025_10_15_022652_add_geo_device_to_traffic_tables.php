@@ -9,21 +9,10 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-     public function up(): void
+    public function up(): void
     {
-        // Untuk tabel shortlink traffic
-        Schema::table('short_link_trafficts', function (Blueprint $table) {
-            $table->string('country')->nullable()->after('domain_decentralizes_id');
-            $table->string('city')->nullable()->after('country');
-            $table->string('device_type')->nullable()->after('city'); // contoh: 'mobile', 'desktop'
-        });
-
-        // Untuk tabel microsite traffic
-        Schema::table('microsite_link_trafficts', function (Blueprint $table) {
-            $table->string('country')->nullable()->after('domain_decentralizes_id');
-            $table->string('city')->nullable()->after('country');
-            $table->string('device_type')->nullable()->after('city');
-        });
+        $this->addTrackingColumns('short_link_trafficts');
+        $this->addTrackingColumns('microsite_link_trafficts');
     }
 
     /**
@@ -31,12 +20,35 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('short_link_trafficts', function (Blueprint $table) {
-            $table->dropColumn(['country', 'city', 'device_type']);
-        });
+        $this->dropTrackingColumns('short_link_trafficts');
+        $this->dropTrackingColumns('microsite_link_trafficts');
+    }
 
-        Schema::table('microsite_link_trafficts', function (Blueprint $table) {
-            $table->dropColumn(['country', 'city', 'device_type']);
+    private function addTrackingColumns(string $table): void
+    {
+        Schema::table($table, function (Blueprint $tableBlueprint) use ($table) {
+            if (! Schema::hasColumn($table, 'country')) {
+                $tableBlueprint->string('country')->nullable()->after('domain_decentralizes_id');
+            }
+
+            if (! Schema::hasColumn($table, 'city')) {
+                $tableBlueprint->string('city')->nullable()->after('country');
+            }
+
+            if (! Schema::hasColumn($table, 'device_type')) {
+                $tableBlueprint->string('device_type')->nullable()->after('city');
+            }
+        });
+    }
+
+    private function dropTrackingColumns(string $table): void
+    {
+        Schema::table($table, function (Blueprint $tableBlueprint) use ($table) {
+            foreach (['country', 'city', 'device_type'] as $column) {
+                if (Schema::hasColumn($table, $column)) {
+                    $tableBlueprint->dropColumn($column);
+                }
+            }
         });
     }
 };
