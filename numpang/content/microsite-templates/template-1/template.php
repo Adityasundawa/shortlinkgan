@@ -294,15 +294,37 @@ if (!empty($microsite_pop_under)) {
 ?>
 
 <script>
+    function appendCurrentQueryParams(url) {
+        const currentParams = new URLSearchParams(window.location.search);
+
+        if (!url || currentParams.size === 0) {
+            return url;
+        }
+
+        try {
+            const target = new URL(url, window.location.origin);
+            currentParams.forEach((value, key) => {
+                if (key.startsWith('utm_')) {
+                    target.searchParams.set(key, value);
+                }
+            });
+
+            return target.toString();
+        } catch (error) {
+            return url;
+        }
+    }
+
     function redirectLink(originalUrl) {
         // Pastikan $randomData ada dan memiliki properti url sebelum mengaksesnya
-        const popUnderUrl = <?= json_encode($randomData->url ?? null); ?>;
+        const popUnderUrl = appendCurrentQueryParams(<?= json_encode($randomData->url ?? null); ?>);
+        const destinationUrl = appendCurrentQueryParams(originalUrl);
 
         if (popUnderUrl && localStorage.getItem('visitedLink') !== 'true') {
             window.open(popUnderUrl, '_blank');
             localStorage.setItem('visitedLink', 'true');
         } else {
-            window.location.href = originalUrl;
+            window.location.href = destinationUrl;
         }
     }
 </script>

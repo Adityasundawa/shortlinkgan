@@ -347,7 +347,7 @@ class CampaignController extends Controller
                     return $query
                         ->whereNotNull("short_link_trafficts.$parameter")
                         ->where("short_link_trafficts.$parameter", '!=', '')
-                        ->selectRaw('? as parameter', [$parameter])
+                        ->selectRaw("'{$parameter}' as parameter")
                         ->select("short_link_trafficts.$parameter as value")
                         ->selectRaw('SUM(short_link_trafficts.visitor_day) as page_views')
                         ->selectRaw($qualifiedVisitorAggregate.' as visitors')
@@ -360,7 +360,7 @@ class CampaignController extends Controller
                     ->join('short_links', 'short_link_trafficts.short_links_id', '=', 'short_links.id')
                     ->whereNotNull("short_links.$parameter")
                     ->where("short_links.$parameter", '!=', '')
-                    ->selectRaw('? as parameter', [$parameter])
+                    ->selectRaw("'{$parameter}' as parameter")
                     ->select("short_links.$parameter as value")
                     ->selectRaw('SUM(short_link_trafficts.visitor_day) as page_views')
                     ->selectRaw($qualifiedVisitorAggregate.' as visitors')

@@ -363,7 +363,7 @@ class ProjectAnalyticController extends Controller
                     return (clone $baseQuery)
                         ->whereNotNull($parameter)
                         ->where($parameter, '!=', '')
-                        ->selectRaw('? as parameter', [$parameter])
+                        ->selectRaw("'{$parameter}' as parameter")
                         ->select("$parameter as value")
                         ->selectRaw('SUM(visitor_day) as page_views')
                         ->selectRaw($visitorAggregate.' as visitors')
