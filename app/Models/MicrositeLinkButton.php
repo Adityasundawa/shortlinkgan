@@ -26,4 +26,9 @@ class MicrositeLinkButton extends Model
     {
         return $this->belongsTo(MicrositeLink::class, 'microsite_links_id');
     }
+
+    public function clickTrafficts()
+    {
+        return $this->hasMany(MicrositeLinkButtonTraffict::class, 'microsite_link_buttons_id');
+    }
 }

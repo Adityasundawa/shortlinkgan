@@ -344,16 +344,29 @@ class MicrositeLinkController extends Controller
                 ->values()
             : collect();
 
-        $hasButtonClicksColumn = Schema::hasColumn('microsite_link_buttons', 'clicks');
-        $buttonClicksQuery = MicrositeLinkButton::where('microsite_links_id', $project_id)
-            ->select('id', 'title', 'url')
-            ->selectRaw($hasButtonClicksColumn ? 'clicks' : '0 as clicks');
+        // Klik tombol difilter sesuai rentang tanggal yang dipilih, menggunakan log klik
+        // per-tanggal (microsite_link_button_trafficts). Kolom `clicks` di microsite_link_buttons
+        // sendiri adalah counter total seumur hidup dan sengaja tidak dipakai di sini karena
+        // tidak menyimpan tanggal kejadian sehingga tidak bisa difilter.
+        $buttonClicksBaseQuery = MicrositeLinkButton::where('microsite_links_id', $project_id)
+            ->select('id', 'title', 'url');
 
-        if ($hasButtonClicksColumn) {
-            $buttonClicksQuery->orderByDesc('clicks');
+        if (Schema::hasTable('microsite_link_button_trafficts')) {
+            $buttonClicksBaseQuery->withCount(['clickTrafficts as clicks' => function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()]);
+            }])->orderByDesc('clicks');
+        } else {
+            // Fallback untuk environment yang belum menjalankan migration terbaru:
+            // tampilkan total klik seumur hidup (tidak benar-benar difilter tanggal).
+            $hasButtonClicksColumn = Schema::hasColumn('microsite_link_buttons', 'clicks');
+            $buttonClicksBaseQuery->selectRaw($hasButtonClicksColumn ? 'clicks' : '0 as clicks');
+
+            if ($hasButtonClicksColumn) {
+                $buttonClicksBaseQuery->orderByDesc('clicks');
+            }
         }
 
-        $buttonClicks = $buttonClicksQuery
+        $buttonClicks = $buttonClicksBaseQuery
             ->get()
             ->map(fn ($button) => [
                 'id' => $button->id,

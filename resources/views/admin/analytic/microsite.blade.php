@@ -186,7 +186,7 @@
                             <div class="col-12">
                                 <div class="card shadow-none border">
                                     <div class="card-header">
-                                        <h5 class="mb-0">Button Clicks</h5>
+                                        <h5 class="mb-0">Button Clicks <small class="text-muted fw-normal">(sesuai rentang tanggal terpilih)</small></h5>
                                     </div>
                                     <div class="card-body">
                                         <div class="table-responsive">

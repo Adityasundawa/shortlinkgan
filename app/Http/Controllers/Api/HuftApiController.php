@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DomainDecentralize;
 use App\Models\MicrositeLink;
 use App\Models\MicrositeLinkButton;
+use App\Models\MicrositeLinkButtonTraffict;
 use App\Models\MicrositeLinkTrafficts;
 use App\Models\ShortLink;
 use App\Models\ShortLinkTraffict;
@@ -171,6 +172,12 @@ class HuftApiController extends Controller
 
             // Atomically increment the 'clicks' column to prevent race conditions
             $button->increment('clicks');
+
+            // Catat log klik per-tanggal supaya bisa difilter berdasarkan rentang tanggal di halaman analytics
+            MicrositeLinkButtonTraffict::create([
+                'date' => now()->toDateString(),
+                'microsite_link_buttons_id' => $button->id,
+            ]);
 
             return response()->json(['status' => 'success', 'message' => 'Click tracked.']);
         }
