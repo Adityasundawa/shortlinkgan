@@ -154,7 +154,7 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="">Tags *</label>
-                                        <input type="text" name="tags" class="form-control tags" required
+                                        <input type="text" name="tags" class="form-control tags"
                                             placeholder="RND, DST" value="{{ implode(',', $tags) ?? '' }}">
                                     </div>
 
@@ -314,7 +314,7 @@
                                     <div class="form-group">
                                         <label for="edit_tags">Tags *</label>
                                         <input type="text" name="tags" id="edit_tags" class="form-control"
-                                            required placeholder="RND, DST">
+                                            placeholder="RND, DST">
                                     </div>
 
                                     {{-- Original URL Group di Modal Edit (PENTING: ID ini digunakan oleh JS) --}}
