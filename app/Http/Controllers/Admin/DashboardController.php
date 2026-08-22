@@ -140,6 +140,7 @@ class DashboardController extends Controller
             'campaign_id' => 'required|integer|exists:campaigns,id',
             'tags' => 'required|string|max:255',
             'images_background' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'use_play_button' => 'nullable|boolean',
         ];
 
         // Logika validasi conditional untuk is_multi_redirect
@@ -174,52 +175,24 @@ class DashboardController extends Controller
 
         // --- 2. Handle File Upload (images_background) ---
         $imagePath = null;
+        $usePlayButton = $request->boolean('use_play_button', true);
         if ($request->hasFile('images_background')) {
             $imageFile = $request->file('images_background');
 
-            // --- LOGIKA INTERVENTION IMAGE DIMULAI ---
-
-            // 1. Definisikan path gambar thumbnail
-            $thumbnailPath = public_path('thumb/play.png');
-
-            // 2. Tentukan Path dan Nama File Tujuan
             $destinationDir = 'images_backgrounds';
             $destinationPath = public_path($destinationDir);
             $fileName = time().'_'.uniqid().'.'.$imageFile->getClientOriginalExtension();
             $fullPath = $destinationPath.'/'.$fileName;
 
-            // Cek jika direktori belum ada, buat direktori
             if (! file_exists($destinationPath)) {
-                // Gunakan 0755 atau 0777 tergantung konfigurasi server Anda
                 mkdir($destinationPath, 0755, true);
             }
 
-            // 3. Muat dan Ubah Ukuran Gambar Thumbnail (Di-resize ke 100x100)
-            try {
-                // Muat gambar play.png sebagai objek terpisah
-                $thumbnail = Image::make($thumbnailPath);
+            $imageFile->move($destinationPath, $fileName);
 
-                // Mengubah ukuran thumbnail menjadi 100x100 piksel, proporsional
-                $thumbnail->fit(100, 100);
-
-                // 4. Muat Gambar Background
-                $image = Image::make($imageFile->getRealPath());
-
-                // 5. Tambahkan Thumbnail yang Sudah Diubah Ukurannya ke tengah
-                $image->insert($thumbnail, 'center', 0, 0);
-
-                // 6. Simpan Gambar yang sudah dimodifikasi
-                $image->save($fullPath);
-
-            } catch (\Exception $e) {
-                // Opsional: Log error jika pemrosesan gambar gagal
-                \Log::error('Image Processing Failed: '.$e->getMessage());
-
-                // Jika gagal, simpan saja gambar asli atau tangani sesuai kebutuhan
-                $imageFile->move($destinationPath, $fileName);
+            if ($usePlayButton) {
+                \App\Helpers\PlayButtonOverlay::apply($fullPath);
             }
-
-            // --- LOGIKA INTERVENTION IMAGE SELESAI ---
 
             $imagePath = $destinationDir.'/'.$fileName;
         }
@@ -242,6 +215,7 @@ class DashboardController extends Controller
             'user_id' => Auth::user()->id,
             'meta' => '',
             'images_background' => $imagePath,
+            'use_play_button' => $usePlayButton,
             'custom_title' => $request['custom_title'] ?? null,
             'custom_description' => $request['custom_description'] ?? null,
             'type_short_links' => 'shortlink',

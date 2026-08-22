@@ -208,6 +208,13 @@
                                             background or social media preview.</div>
                                     </div>
 
+                                    <div class="form-group mt-3 d-flex align-items-center gap-2">
+                                        <input type="checkbox" id="use_play_button" name="use_play_button" value="1"
+                                            checked>
+                                        <label for="use_play_button" class="mb-0">Use Play Button Icon on
+                                            Background</label>
+                                    </div>
+
                                     <div class="form-group mt-3">
                                         <label for="custom_title" class="form-label">Custom Title (Optional)</label>
                                         <input type="text" name="custom_title" id="custom_title" class="form-control"
@@ -358,6 +365,13 @@
                                             name="images_background" accept="image/*">
                                         <div class="text-sm text-muted mt-1">Upload an image for this short link's
                                             background or social media preview.</div>
+                                    </div>
+
+                                    <div class="form-group mt-3 d-flex align-items-center gap-2">
+                                        <input type="checkbox" id="edit_use_play_button" name="use_play_button"
+                                            value="1" checked>
+                                        <label for="edit_use_play_button" class="mb-0">Use Play Button Icon on
+                                            Background</label>
                                     </div>
 
                                     {{-- ADDED: Custom Title for consistency --}}
@@ -1076,6 +1090,7 @@
                     // PERBAIKAN LOAD CUSTOM FIELDS
                     $('#edit_custom_title').val(data.custom_title || '');
                     $('#edit_custom_description').val(data.custom_description || '');
+                    $('#edit_use_play_button').prop('checked', data.use_play_button === undefined ? true : !!data.use_play_button);
 
                     // ----------------------------------------------------
                     // LOGIKA PENGISIAN MULTI REDIRECT DAN ORIGINAL URL

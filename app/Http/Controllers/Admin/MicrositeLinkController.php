@@ -99,6 +99,7 @@ class MicrositeLinkController extends Controller
             'title' => 'required|string|max:255',
             'photo' => 'nullable|file|image|max:1024', // max:1024 = 1MB
             'background' => 'nullable|file|image|max:1024', // max:1024 = 1MB
+            'use_play_button' => 'nullable|boolean',
             'percentage.*' => 'nullable|integer|min:0|max:100',
             // Tambahkan validasi untuk URL popunder agar tidak kosong jika ada percentage
             'popunder_link.*' => 'nullable|url|max:255',
@@ -128,10 +129,15 @@ class MicrositeLinkController extends Controller
         }
 
         // --- BACKGROUND ---
+        $usePlayButton = $request->boolean('use_play_button', true);
         if ($request->hasFile('background')) {
             $backgroundFile = $request->file('background');
             $background = $backgroundFile->hashName();
             $backgroundFile->move($destinationPath, $background);
+
+            if ($usePlayButton) {
+                \App\Helpers\PlayButtonOverlay::apply($destinationPath.'/'.$background);
+            }
         }
 
         // 3. Simpan Data Microsite (Master)
@@ -142,6 +148,7 @@ class MicrositeLinkController extends Controller
         $new_microsite->short_url = UrlShort::randomString();
         $new_microsite->users_id = Auth::user()->id;
         $new_microsite->images_background = $background;
+        $new_microsite->use_play_button = $usePlayButton;
         $new_microsite->save();
 
         // 4. Simpan Data Popunder (Perbaikan Error 1364)

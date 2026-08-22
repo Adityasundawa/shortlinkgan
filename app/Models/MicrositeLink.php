@@ -18,6 +18,7 @@ class MicrositeLink extends Model
         'users_id',
         'template_microsites_id',
         'images_background',
+        'use_play_button',
     ];
     public function user()
     {

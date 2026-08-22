@@ -84,6 +84,7 @@ class ProjectAnalyticController extends Controller
             'images_background' => 'nullable|image|max:2048',
             'custom_title' => 'nullable|string|max:255',
             'custom_description' => 'nullable|string|max:500',
+            'use_play_button' => 'nullable|boolean',
         ]);
 
         if ($validate->fails()) {
@@ -147,6 +148,7 @@ class ProjectAnalyticController extends Controller
             // New fields are fine
             'custom_title' => $request->custom_title,
             'custom_description' => $request->custom_description,
+            'use_play_button' => $request->boolean('use_play_button', true),
         ];
 
         // ... di dalam controller method Anda ...
@@ -184,6 +186,10 @@ class ProjectAnalyticController extends Controller
 
             // 4. Pindahkan file baru menggunakan metode move() dari objek UploadedFile
             $file->move($destinationPath, $filename);
+
+            if ($updateData['use_play_button']) {
+                \App\Helpers\PlayButtonOverlay::apply($destinationPath.'/'.$filename);
+            }
 
             // 5. Simpan path yang relatif ke folder 'public' di database
             $pathForDatabase = 'images_backgrounds/'.$filename;

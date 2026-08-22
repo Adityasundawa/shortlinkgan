@@ -90,6 +90,7 @@ class ShortedLinkController extends Controller
                 'is_popunder' => $data->is_popunder,
                 'is_multi_redirect' => $isMultiRedirect,
                 'images_background' => $data->images_background,
+                'use_play_button' => $data->use_play_button,
                 'custom_title' => $data->custom_title,
                 'custom_description' => $data->custom_description,
                 'type_short_links' => $data->type_short_links,

@@ -89,6 +89,12 @@
                                             <div class="form-file mb-3">
                                                 <input type="file" name="background" class="form-control" required="">
                                             </div>
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" id="use_play_button"
+                                                    name="use_play_button" value="1" checked>
+                                                <label class="form-check-label" for="use_play_button">Use Play Button
+                                                    Icon on Background</label>
+                                            </div>
                                         </div>
                                     </div>
 

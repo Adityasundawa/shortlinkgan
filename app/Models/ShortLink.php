@@ -24,6 +24,7 @@ class ShortLink extends Model
         'utm_content',
         'utm_term',
         'images_background',
+        'use_play_button',
         'custom_title',
         'custom_description',
         'type_short_links',
